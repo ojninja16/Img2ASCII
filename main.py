@@ -1,35 +1,38 @@
 from PIL import Image,ImageDraw,ImageFont
 from argparse import ArgumentParser
 import numpy as np
-sample_Width=20
-sample_Height=40
+import cv2 
+# sample_Width=20
+# sample_Height=40
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument("--img_path", help="Path to the image to be processed",required=True)
     return parser.parse_args()
-char_lookup = [" ", ".", ",", ":", ";", "i", "1", "t", "f", "L", "C", "G", "0", "8", "#", "@"]
+char_lookup = [" ", ".", ",", ":", ";", "i", "1", "t", "f", "L", "C", "G", "0", "8", "#", "@"][::-1]
 # def render_glyph(glyph):
     
+def preprocess_image(img_path):
+    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    return img
 def main(img_path):
     # print("Hello, World!",img_path)
     img=Image.open(img_path).convert(mode="L")
-    img_array=np.array(img)
+    # img_array=np.array(img)
+    img_array = preprocess_image(img_path)
     ascii_art=[]
+    sample_Width = img_array.shape[1] // 100
+    sample_Height = img_array.shape[0] // 100
     # print(img_array[0:5,0:5])
     # print ("range doing what",range(img_array.shape[0]//sample_Height))
     # output=np.zeros((img_array.shape[0]//sample_Height,img_array.shape[1]//sample_Width))
     # Image segmentation breaking the image into  pixel chunks and then analyzing each chunk individually 
-    for y in range(img_array.shape[0]//sample_Height):
+    for y in range(0, img_array.shape[0], sample_Height):
         line = ""
-        for x in range(img_array.shape[1]//sample_Width):
+        for x in range(0, img_array.shape[1], sample_Width):
             # output= np.mean(img_array[y*sample_Height:(y+1)*sample_Height,x*sample_Width:(x+1)*sample_Width])
-            y_start=y*sample_Height
-            y_end=y_start+sample_Height
-            x_start=x*sample_Width
-            x_end=x_start+sample_Width
-            # print("what is exactly yhis")
-            # slicing the image array into chunks
-            chunk=img_array[y_start:y_end,x_start:x_end]
+            y_end = min(y + sample_Height, img_array.shape[0])
+            x_end = min(x + sample_Width, img_array.shape[1])
+            chunk = img_array[y:y_end, x:x_end]
             # print(chunk)
             # getting the cummulative brightness of the chunk array
             brightness=np.sum(chunk)
@@ -49,16 +52,14 @@ def main(img_path):
     # Image.fromarray(img_array).save("test.jpg")
 def render_ascii_art(ascii_art, font_path, font_size, output_image_path):
     char_height = font_size
-    char_width = int(font_size *0.5)
+    char_width = int(font_size *.6)
     print("ascii_art",ascii_art)
     img_height = len(ascii_art) * char_height
     print("img_height",img_height)
     img_width = len(ascii_art[0]) * char_width
-
     output_image = Image.new('L', (img_width, img_height), color=255)
     draw = ImageDraw.Draw(output_image)
     font = ImageFont.truetype(font_path, font_size)
-
     y_offset = 0
     for line in ascii_art:
         x_offset = 0
@@ -73,7 +74,7 @@ def render_ascii_art(ascii_art, font_path, font_size, output_image_path):
 if __name__ == "__main__":
     main(**vars(parse_args()))
     font_path = "C:/Windows/Fonts/Arial.ttf"  
-    font_size = 12
+    font_size = 20
     output_image_path = "./ascii_art_image.png"
 
     ascii_image = render_ascii_art(main(**vars(parse_args())), font_path, font_size, output_image_path)
