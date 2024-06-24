@@ -13,12 +13,16 @@ char_lookup = [" ", ".", ",", ":", ";", "i", "1", "t", "f", "L", "C", "G", "0", 
     
 def preprocess_image(img_path):
     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    img = cv2.GaussianBlur(img, (3, 3), 0)  #  reduce noise
+    img = cv2.equalizeHist(img)  # Equalize histogram for better contrast
+    print("image shape",img.shape)
     return img
 def main(img_path):
     # print("Hello, World!",img_path)
     img=Image.open(img_path).convert(mode="L")
     # img_array=np.array(img)
     img_array = preprocess_image(img_path)
+    # print("input image shape",img_array.shape)
     ascii_art=[]
     sample_Width = img_array.shape[1] // 100
     sample_Height = img_array.shape[0] // 100
@@ -47,15 +51,15 @@ def main(img_path):
         ascii_art.append(line)
         
     print (len(ascii_art ))
-    return ascii_art
+    return ascii_art,img_array.shape
     # print("new output shape",output.shape)
     # Image.fromarray(img_array).save("test.jpg")
-def render_ascii_art(ascii_art, font_path, font_size, output_image_path):
+def render_ascii_art(ascii_art,original_shape, font_path, font_size, output_image_path):
     char_height = font_size
-    char_width = int(font_size *.6)
-    print("ascii_art",ascii_art)
+    aspect_ratio = original_shape[1] / original_shape[0]
+    char_width = int(font_size * aspect_ratio * 0.6)
+    
     img_height = len(ascii_art) * char_height
-    print("img_height",img_height)
     img_width = len(ascii_art[0]) * char_width
     output_image = Image.new('L', (img_width, img_height), color=255)
     draw = ImageDraw.Draw(output_image)
@@ -68,14 +72,17 @@ def render_ascii_art(ascii_art, font_path, font_size, output_image_path):
             x_offset += char_width
         y_offset += char_height
     
+    # output_image.save(output_image_path)
+    output_image = output_image.resize(original_shape[::-1], Image.LANCZOS)#resize issue resolved using LANCZOS filter instead
     output_image.save(output_image_path)
+    print("output image dimensions",output_image.size)
     return output_image
     
 if __name__ == "__main__":
     main(**vars(parse_args()))
-    font_path = "C:/Windows/Fonts/Arial.ttf"  
+    font_path = "C:/Windows/Fonts/arial.ttf"  
     font_size = 20
     output_image_path = "./ascii_art_image.png"
-
-    ascii_image = render_ascii_art(main(**vars(parse_args())), font_path, font_size, output_image_path)
+    ascii_art,original_shape=main(**vars(parse_args()))
+    ascii_image = render_ascii_art(ascii_art,original_shape, font_path, font_size, output_image_path)
     ascii_image.show()
