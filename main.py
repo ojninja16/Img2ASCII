@@ -19,7 +19,7 @@ def preprocess_image(img_path):
     return img
 def main(img_path):
     # print("Hello, World!",img_path)
-    img=Image.open(img_path).convert(mode="L")
+    pil_img=Image.open(img_path).convert(mode="L")
     # img_array=np.array(img)
     img_array = preprocess_image(img_path)
     # print("input image shape",img_array.shape)
@@ -75,6 +75,7 @@ def render_ascii_art(ascii_art,original_shape, font_path, font_size, output_imag
     # output_image.save(output_image_path)
     output_image = output_image.resize(original_shape[::-1], Image.LANCZOS)#resize issue resolved using LANCZOS filter instead
     output_image.save(output_image_path)
+    # Image.fromarray(output_image-img_array).save("dif.jpg")
     print("output image dimensions",output_image.size)
     return output_image
     
