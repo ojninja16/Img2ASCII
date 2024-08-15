@@ -1,0 +1,13 @@
+# Ignore all JPG files
+**/*.jpg
+
+# Exclude images folders
+data/ascii_art_images/
+data/original_images/
+data/VOCdevkit/
+
+# Exclude .tar files
+**/*.tar
+
+# Only include the Python script
+**/*.py
